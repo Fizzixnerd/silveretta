@@ -1,12 +1,12 @@
 #ifndef _SIMPLE_LISP_LINEDIT_H
 #define _SIMPLE_LISP_LINEDIT_H
 
+#ifdef _WIN32
+/* Windows doesn't need editline. */
+
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#ifdef _WIN32
-/* Windows doesn't need editline. */
 
 static char buffer[2048];
 
