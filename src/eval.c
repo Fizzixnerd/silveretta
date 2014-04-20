@@ -1,5 +1,3 @@
-#define _WDEBUG
-
 #include "debug.h"
 #include "eval.h"
 

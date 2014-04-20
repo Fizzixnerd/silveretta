@@ -1,5 +1,3 @@
-#define _WDEBUG
-
 #include "debug.h"
 #include "linedit.h"
 #include "eval.h"
@@ -26,7 +24,7 @@ int main(int argc, char** argv) {
             ",
 	    number, symbol, sexpr, expr, wlisp);
 
-  puts("WalkerLisp Version 0.0.0.0.3");
+  puts("WalkerLisp Version 1.0");
   puts("Press Ctrl+c to Exit\n");
 
   while (1) {

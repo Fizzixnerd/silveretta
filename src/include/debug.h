@@ -19,7 +19,4 @@
 // Always defer to eprintf...
 #define eputln(str) eprintf("%s\n", str)
 
-// A deprecated alias for dprintf.
-#define debugf(...) dprintf(__VA_ARGS__)
-
 #endif /* _SIMPLE_LISP_DEBUG_H */
