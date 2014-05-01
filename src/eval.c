@@ -1,5 +1,6 @@
-#include "debug.h"
 #include "eval.h"
+#include "lval.h"
+#include "debug.h"
 
 #include "mpc.h"
 
@@ -31,7 +32,7 @@ long wl_eval(mpc_ast_t* ast) {
 }
 
 long wl_eval_number(mpc_ast_t* ast) {
-  return atoi(ast->contents);
+  return atol(ast->contents);
 }
 
 long wl_eval_sexpr(mpc_ast_t* ast) {
