@@ -1,6 +1,0 @@
-[submodule "mpc"]
-	path = mpc
-	url = ./src/extern/mpc
-[submodule "src/extern/mpc"]
-	path = src/extern/mpc
-	url = ./src/extern/mpc

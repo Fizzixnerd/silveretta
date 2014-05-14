@@ -1,2 +1,0 @@
-INCLUDES=-Iinclude/
-CFLAGS=-Wall -Wextra -ggdb
