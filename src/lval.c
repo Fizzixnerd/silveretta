@@ -1,23 +1,34 @@
 #include "lval.h"
+#include "macros.h"
+#include "string-helpers.h"
+#include "debug.h"
 
-lval_value lval_new_num(long x) {
-  return (lval_value)x;
-}
+#include <string.h>
 
-wl_lval lval_num(long x) {
-  wl_lval v;
-  v.type = LTYPE_NUM;
-  v.val = lval_new_num(x);
+wl_lval make_wl_lval_long(lval_long x) {
+  wl_lval v = {.type = LTYPE_LONG, .val.Long = x};
   return v;
 }
 
-wl_lval lval_err(lval_error e) {
-  lval v;
-  v.type = LTYPE_ERR;
-  v.err = e;
+wl_lval make_wl_lval_err(lval_err e) {
+  wl_lval v = {.type = LTYPE_ERR, .val.Error = e};
   return v;
 }
 
 char* lval_to_string(wl_lval v) {
-  
+  // FIXME : Finish this.
+  // The caller must free the string.
+  switch (v.type) {
+  case LTYPE_LONG:
+    return ltoa(v.val.Long);
+    break;
+  case LTYPE_ERR:
+    return astrcpy(v.val.Error.msg);
+    break;
+  default:
+    #include "stringify.h"
+    eprintf("Error: lval_to_string doesn't know how to stringify type %s.", STRINGIFY(v.type));
+    #include "stringify-cleanup.h"
+    return "Error: Can't stringify the lval given to lval_to_string.";
+  }
 }

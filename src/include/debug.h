@@ -7,11 +7,15 @@
 #define debugloc() fprintf(stderr, "%s:%s:%d: ", __FILE__, __func__, __LINE__)
 
 #ifdef _WDEBUG
-#define dprintf(...) {debugloc(); fprintf(stderr, __VA_ARGS__);}
+#undef _WDEBUG
+#define _WDEBUG 1
+#define dprint(...) {debugloc(); fprintf(stderr, __VA_ARGS__);}
 #define dputln(str) {debugloc(); fprintf(stderr, "%s\n", str);}
-#define eprintf(...) dprintf(__VA_ARGS__)
+#define eprintf(...) dprint(__VA_ARGS__)
 #else /* _WDEBUG */
-#define dprintf(str) 
+#undef _WDEBUG
+#define _WDEBUG 0
+#define dprint(...) 
 #define dputln(str)
 #define eprintf(...) fprintf(stderr, __VA_ARGS__)
 #endif /* _WDEBUG */
