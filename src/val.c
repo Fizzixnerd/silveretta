@@ -4,14 +4,16 @@
 #include "debug.h"
 #include "errors.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
 
 static ag_val* OOM_ERR;
 
-ag_val* oom_err() {
-  *OOM_ERR = {.type = AG_TYPE_ERR, .val.Error = OUT_OF_MEMORY_ERROR};
+static ag_val* oom_err() {
+  OOM_ERR->type = AG_TYPE_ERR;
+  OOM_ERR->val.Error = make_val_err(OUT_OF_MEMORY_ERR);
   return OOM_ERR;
 }
 
@@ -23,7 +25,8 @@ ag_val* make_ag_val() {
 ag_val* make_ag_val_long(val_long x) {
   ag_val* v = make_ag_val();
   if (v) {
-    *v = {.type = AG_TYPE_LONG, .val.Long = x};
+    v->type = AG_TYPE_LONG;
+    v->val.Long = x;
     return v;
   } else {
     return oom_err();
@@ -33,7 +36,8 @@ ag_val* make_ag_val_long(val_long x) {
 ag_val* make_ag_val_err(val_err e) {
   ag_val* v = make_ag_val();
   if (v) {
-    *v = {.type = AG_TYPE_ERR, .val.Error = e};
+    v->type = AG_TYPE_ERR;
+    v->val.Error = e;
     return v;
   } else {
     return oom_err();
@@ -49,7 +53,8 @@ val_err make_val_err(char* msg) {
 ag_val* make_ag_val_bool(val_bool b) {
   ag_val* v = make_ag_val();
   if (v) {
-    *v = {.type = AG_TYPE_BOOL, .val.Bool = b};
+    v->type = AG_TYPE_BOOL;
+    v->val.Bool = b;
     return v;
   } else {
     return oom_err();
@@ -59,7 +64,8 @@ ag_val* make_ag_val_bool(val_bool b) {
 ag_val* make_ag_val_list(val_list* list) {
   ag_val* v = make_ag_val();
   if (v) {
-    *v = {.type = AG_TYPE_LIST, .val.List = list};
+    v->type = AG_TYPE_LIST;
+    v->val.List = list;
     return v;
   } else {
     return oom_err();
@@ -69,7 +75,8 @@ ag_val* make_ag_val_list(val_list* list) {
 ag_val* make_ag_val_symbol(val_symbol sym) {
   ag_val* v = make_ag_val();
   if (v) {
-    *v = {.type = AG_TYPE_SYMBOL, .val.Symbol = sym};
+    v->type = AG_TYPE_SYMBOL;
+    v->val.Symbol = sym;
     return v;
   } else {
     return oom_err();
@@ -90,7 +97,7 @@ void ag_val_del(ag_val *v) {
     free(v->val.Symbol);
     break;
   case AG_TYPE_LIST:
-    ag_val_del(v->val->List);
+    val_list_del(v->val.List);
     break;
   }
   free(v);
@@ -99,14 +106,15 @@ void ag_val_del(ag_val *v) {
 
 val_list* make_val_list(ag_val* head, val_list* tail) {
   
-  val_list list = malloc(sizeof(val_list));
+  val_list* list = malloc(sizeof(val_list));
   if (list) {
-    *list = {.head = head, .tail = tail};
+    list->head = head;
+    list->tail = tail;
+    return list;
   } else {
     printf("%s", "Out of memory!");
     abort();
   }
-  return list;
 }
 
 void val_list_del(val_list* list) {
@@ -137,83 +145,140 @@ ag_val* ag_read_long(mpc_ast_t* ast) {
                            make_ag_val_err(make_val_err("Invalid long."));
 }
 
-ag_val* ag_read_nil(mpc_ast* ast) {
+ag_val* ag_read_nil(mpc_ast_t* ast) {
   assert(strstr(ast->tag, "nil"));
   return NULL;
 }
 
-ag_val* ag_read_symbol(mpc_ast* ast) {
+ag_val* ag_read_symbol(mpc_ast_t* ast) {
   assert(strstr(ast->tag, "symbol"));
   return make_ag_val_symbol(strdup(ast->contents));
 }
 
-ag_val* ag_read_list(mpc_ast* ast) {
-  assert(strstr(ast->tag, "list"));
-  val_list* list = make_val_list(ag_read(ast->children->contents[1]), NULL);
+ag_val* ag_read_list(mpc_ast_t* ast) {
+  assert(strstr(ast->tag, "list") || !strcmp(ast->tag, ">"));
+  val_list* list = make_val_list(ag_read(ast->children[1]), NULL);
 
   int i = 2;
   val_list* curr_list = NULL;
   val_list* next_list = list;
   // while not ")"
-  while (strcmp(ast->children->contents[i], ")") && (i < ast->children_num)) {
-    if (!strcmp(ast->children[i], "regex") continue;
+  while (strcmp(ast->children[i]->contents, ")") && (i < ast->children_num)) {
+    if (!strcmp(ast->children[i]->contents, "regex")) continue;
     curr_list = next_list;
-    next_list = make_val_list(ag_read(ast->children[i]->contents), NULL)
+    next_list = make_val_list(ag_read(ast->children[i]), NULL);
     val_list_append_list(curr_list, next_list);
     ++i;
   }
   return make_ag_val_list(list);
 }
 
-ag_val ag_read(mpc_ast* ast) {
-
+ag_val* ag_read(mpc_ast_t* ast) {
+  
   if (strstr(ast->tag, "long_num")) return ag_read_long(ast);
   if (strstr(ast->tag, "symbol")) return ag_read_symbol(ast);
   if (strstr(ast->tag, "nil")) return ag_read_nil(ast);
-  if (!strcmp(ast->tag, ">") || strstr(ast->tag, "list")) {
+  if (!strcmp(ast->tag, ">")) {
+    return ag_read_list(ast->children[1]);
+  }
+  if (strstr(ast->tag, "list")) {
     return ag_read_list(ast);
   }
+  return make_ag_val_err(make_val_err(strdup("Read error.")));
 }
-   
-char* ag_val_to_string(ag_val* v) {
+
+str_list* val_list_alprint(val_list* v) {
+  // a == allocated
+  // l == list
+  // Must free.
+  str_list* head = malloc(sizeof(str_list));
+  str_list* sl_it = head;
+  val_list* v_it = v;
+
+  do {
+    sl_it->str = ag_sprint(v->head);
+    sl_it->next = malloc(sizeof(str_list));
+    sl_it->next->str = NULL;
+    sl_it->next->next = NULL;
+    sl_it = sl_it->next;
+    v_it = v_it->tail;
+  }
+  while (v_it);
+  return head;
+}
+
+void str_list_del(str_list sl*) {
+  if (sl) {
+    if (sl->next->str) {
+      str_list_del(sl->next);
+    }
+    free(sl->str);
+    free(sl);
+  }
+}
+
+char* ag_sprint(ag_val* v) {
   // FIXME : Finish this.
   // The caller must free the string.
   if (!v) {
     return strdup("nil");
   }
-  switch (v.type) {
+  switch (v->type) {
   case AG_TYPE_LONG:
-    return ltoa(v.val.Long);
+    char** strp;
+    if (asprintf(strp, "%li", v->val.Long) == -1) {
+      eprintf("%s", "out of memory!");
+      abort();
+    }
+    return *strp;
     break;
   case AG_TYPE_ERR:
-    return astrcpy(v.val.Error.msg);
+    return strdup(v->val.Error.msg);
     break;
   case AG_TYPE_BOOL:
-    return v.val.Bool ? strdup("true") : strdup("false");
+    return v->val.Bool ? strdup("true") : strdup("false");
     break;
   case AG_TYPE_LIST:
-    const ag_val head = v.val.List.head;
-    const ag_val tail = make_ag_val_list(v.val.List.tail);
-    char* head_str = val_to_string(head);
-    char* tail_str = tail.val.List ? val_to_string(tail) : NULL;
-    int n;
-    if (tail_str) {
-      n = snprintf(NULL, 0, "(%s %s)", head_str, tail_str);
-      char* buf = malloc(sizeof(char) * (n+1));
-      snprintf(buf, n+1, "(%s %s)", head_str, tail_str);
-      free(head_str);
-      free(tail_str);
-      return buf;
-    } else {
-      n = snprintf(NULL, 0, "(%s)", head_str);
-      char* buf = malloc(sizeof(char) * (n+1));
-      snprintf(buf, n+1, "(%s)", head_str);
-      free(head_str);
-      return buf;
+    ; // FIXME WTF WHY DO I NEED THIS RANDOMLY?
+    string* curr;
+    string* next;
+    str_list* sl = val_list_alprint(v->val.List);
+    str_list* sl_it = sl;
+    asprintf(next, "(%s", sl->str);
+    while (sl->next->str) {
+      curr = next;
+      asprintf(next, "%s %s", *curr, sl_it->next->str);
+      free(*curr);
+      sl_it = sl_it->next;
     }
+    str_list_del(sl);
+    curr = next;
+    asprintf(next, "%s)", *curr);
+    free(*curr);
+    return *next;
+    
+    /* ag_val* head = v->val.List->head; */
+    /* ag_val* tail = make_ag_val_list(v->val.List->tail); */
+    /* char* head_str = ag_val_to_string(head); */
+    /* char* tail_str = tail->val.List ? ag_val_to_string(tail) : NULL; */
+    /* int n; */ 
+    /* if (tail_str) { */
+    /*   n = snprintf(NULL, 0, "(%s %s)", head_str, tail_str); */
+    /*   char* buf = malloc(sizeof(char) * (n+1)); */
+    /*   snprintf(buf, n+1, "(%s %s)", head_str, tail_str); */
+    /*   free(head_str); */
+    /*   free(tail_str); */
+    /*   return buf; */
+    /* } else { */
+    /*   n = snprintf(NULL, 0, "(%s)", head_str); */
+    /*   char* buf = malloc(sizeof(char) * (n+1)); */
+    /*   snprintf(buf, n+1, "(%s)", head_str); */
+    /*   free(head_str); */
+    /*   return buf; */
+    /* } */
     break;
-  case AG_TYPE_NIL:
-    return strdup("nil");
+  case AG_TYPE_SYMBOL:
+    return strdup(v->val.Symbol);
     break;
   default:
     #include "stringify.h"
@@ -223,3 +288,9 @@ char* ag_val_to_string(ag_val* v) {
   }
 }
 
+void ag_print(ag_val* value) {
+  char* value_str = ag_val_to_string(value);
+  printf("%s", value_str);
+  free(value_str);
+  return;
+}

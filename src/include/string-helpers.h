@@ -2,5 +2,9 @@
 
 #include "val.h"
 
-char* ltoa(val_long val);
-char* astrcpy(const char* s);
+typedef char** string_array 
+
+typedef struct {
+  char* str;
+  str_list* next;
+} str_list;

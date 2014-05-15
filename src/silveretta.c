@@ -1,5 +1,4 @@
 #include "debug.h"
-#include "linedit.h"
 #include "eval.h"
 #include "val.h"
 #include "types.h"
@@ -9,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <linedit.h>
 
 int main(int argc, char** argv) {
   mpc_parser_t* long_num = mpc_new("long_num");
@@ -21,8 +21,8 @@ int main(int argc, char** argv) {
   mpca_lang(MPC_LANG_DEFAULT,
 	    "                                                   \
              long_num    : /-?[0-9]+/ ;                         \
-             symbol : '+' | '-' | '*' | '/' | 'if';              \
-             nil :   'nil' | '()'
+             symbol : '+' | '-' | '*' | '/' ;              \
+             nil :   '(' ')' ;                                \
              list    : '(' <symbol> <sexp>* ')' ;         \
              sexp     : <long_num> | <symbol> | <list> | <nil> ;    \
              silveretta    : /^/ <sexp>* /$/ ;                       \
@@ -40,8 +40,8 @@ int main(int argc, char** argv) {
     mpc_result_t r;
     if (mpc_parse("<stdin>", input, silveretta, &r)) {
       mpc_ast_print(r.output);
-      ag_val result = ag_eval(r.output);
-      char* result_str = val_to_string(result);
+      ag_val* result = ag_read(r.output);
+      char* result_str = ag_val_to_string(result);
       printf("%s\n", result_str);
       free(result_str);
       mpc_ast_delete(r.output);
@@ -54,6 +54,6 @@ int main(int argc, char** argv) {
     free(input);
   }
 
-  mpc_cleanup(5, long_num, symbol, nil, list, sexp, silveretta);
+  mpc_cleanup(6, long_num, symbol, nil, list, sexp, silveretta);
   return EXIT_SUCCESS;
 }

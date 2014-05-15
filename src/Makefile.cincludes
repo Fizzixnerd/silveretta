@@ -1,2 +1,3 @@
 INCLUDES=-Iinclude/
-CFLAGS=-Wall -Wextra -ggdb -O2 -std=gnu11
+CFLAGS=-Wall -Wextra -ggdb -std=gnu11
+LDDEPS= -lm -ledit

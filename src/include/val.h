@@ -2,9 +2,9 @@
 
 #include "macros.h"
 
+#include "mpc.h"
 
-
-// val stands for "lisp value".
+// ag_val stands for "silveretta value".
 // This is basically an implementation of a tagged union, at the end of the day.
 
 /* Enum which defines the valid types for ag_vals.  AG_TYPE_ERR is
@@ -20,7 +20,7 @@
 typedef enum {
   AG_TYPE_ERR = 0, // Error type
 
-  AG_TYPE_BOOl,
+  AG_TYPE_BOOL,
   AG_TYPE_CHAR, // Machine integer types
   AG_TYPE_UCHAR,
   AG_TYPE_INT,
@@ -48,7 +48,7 @@ typedef struct {
   char* msg;
 } val_err;
 
-typedef bool val_bool
+typedef bool val_bool;
 typedef signed char val_char;
 typedef unsigned char val_uchar;
 typedef int val_int;
@@ -74,14 +74,8 @@ typedef struct {
   char* type;
 } val_obj;
 
-typedef struct {
-  ag_val* head;
-  val_list* tail;
-} val_list;
-
 typedef char* val_symbol;
 
-// TODO: Also need to add the val_fptr and val_obj to this union
 typedef union {
   val_err Error;
   val_bool Bool;
@@ -100,8 +94,9 @@ typedef union {
   val_ldouble LDouble;
   val_cldouble CLDouble;
   val_ptr Ptr;
+  val_fptr Fptr;
   val_obj Obj;
-  val_list* List;
+  struct val_list* List;
   val_symbol Symbol;
 } val_value;
 
@@ -111,14 +106,30 @@ typedef struct {
   val_type type;
 } ag_val;
 
+typedef struct val_list{
+  ag_val* head;
+  struct val_list* tail;
+} val_list;
+
 // Return a val_value representing the long x.
+ag_val* make_ag_val();
+void ag_val_del(ag_val* v);
 ag_val* make_ag_val_long(val_long x);
 ag_val* make_ag_val_err(val_err e);
+val_err make_val_err(char* msg);
 ag_val* make_ag_val_bool(val_bool b);
-ag_val* make_ag_val_list(val_list list);
+ag_val* make_ag_val_list(val_list* list);
+val_list* make_val_list(ag_val* head, val_list* tail);
+void val_list_del(val_list* list);
+val_list* val_list_append_list(val_list* v, val_list* tail);
+val_list* val_list_append_ag_val(val_list* v, ag_val* tail_val);
 ag_val* make_ag_val_symbol(val_symbol sym);
-val_list make_val_list(ag_val* head, val_list* tail);
 
-// You must free the string when you are done.
-char* ag_val_to_string(ag_val v);
+ag_val* ag_read(mpc_ast_t* ast);
+ag_val* ag_read_long(mpc_ast_t* ast);
+ag_val* ag_read_nil(mpc_ast_t* ast);
+ag_val* ag_read_symbol(mpc_ast_t* ast);
+ag_val* ag_read_list(mpc_ast_t* ast);
 
+char* ag_val_to_string(ag_val* v);
+void ag_print(ag_val* v);
