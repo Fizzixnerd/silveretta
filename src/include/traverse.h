@@ -1,8 +1,6 @@
-#ifndef _SIMPLE_LISP_TRAVERSE_H
-#define _SIMPLE_LISP_TRAVERSE_H
+#pragma once
 
 #include "mpc.h"
 
-void wl_ast_traverse(mpc_ast_t* ast, void (*func)(mpc_ast_t*, void*), void* func_state);
+void ag_ast_traverse(mpc_ast_t* ast, void (*func)(mpc_ast_t*, void*), void* func_state);
 
-#endif

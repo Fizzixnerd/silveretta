@@ -1,4 +1,4 @@
-eval.o: eval.c /usr/include/stdc-predef.h include/eval.h include/lval.h \
+eval.o: eval.c /usr/include/stdc-predef.h include/eval.h include/val.h \
  include/macros.h include/types.h include/mpc.h /usr/include/stdlib.h \
  /usr/include/features.h /usr/include/x86_64-linux-gnu/sys/cdefs.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
@@ -35,4 +35,4 @@ eval.o: eval.c /usr/include/stdc-predef.h include/eval.h include/lval.h \
  /usr/include/x86_64-linux-gnu/bits/errno.h /usr/include/linux/errno.h \
  /usr/include/x86_64-linux-gnu/asm/errno.h \
  /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
- include/lval.h include/debug.h include/errors.h include/mpc.h
+ include/debug.h include/errors.h include/mpc.h

@@ -1,20 +1,13 @@
-;; Object Simple Lisp
+;; Object Silveretta
 ;; EDE Project Files are auto generated: Do Not Edit
 (ede-proj-project "Silveretta"
   :file "Project.ede"
   :name "Silveretta"
-  :version "1.1"
-  :targets
-  (list 
+  :targets (list 
    (ede-proj-target-makefile-program "silveretta"
-    :c-include-path '("include")
     :name "silveretta"
     :path ""
-    :source '("silveretta.c" "val.c" "mpc.c" "eval.c" "string-helpers.c")
-    :versionsource '("silveretta.c")
-    :auxsource '("errors.h")
-    :configuration-variables 'nil
-    :ldlibs '("m" "edit")
+    :source '("silveretta.c" "string-helpers.c" "val.c" "mpc.c" "eval.c")
     )
    )
   )

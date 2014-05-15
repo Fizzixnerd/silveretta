@@ -1,2 +1,2 @@
 INCLUDES=-Iinclude/
-CFLAGS=-Wall -Wextra -ggdb
+CFLAGS=-Wall -Wextra -ggdb -O2 -std=gnu11

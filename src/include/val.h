@@ -1,7 +1,8 @@
-#ifndef _SIMPLE_LISP_LVAL_H
-#define _SIMPLE_LISP_VAL_H
+#pragma once
 
 #include "macros.h"
+
+
 
 // val stands for "lisp value".
 // This is basically an implementation of a tagged union, at the end of the day.
@@ -18,7 +19,8 @@
    } */
 typedef enum {
   AG_TYPE_ERR = 0, // Error type
-  
+
+  AG_TYPE_BOOl,
   AG_TYPE_CHAR, // Machine integer types
   AG_TYPE_UCHAR,
   AG_TYPE_INT,
@@ -36,13 +38,17 @@ typedef enum {
   AG_TYPE_CLDOUBLE,
   AG_TYPE_PTR, // Machine data pointer
   AG_TYPE_FPTR, // Machine function pointer
-  AG_TYPE_LOBJ // Lisp object
+  AG_TYPE_LOBJ, // Lisp object
+
+  AG_TYPE_LIST,
+  AG_TYPE_SYMBOL,
 } val_type;
 
 typedef struct {
   char* msg;
 } val_err;
 
+typedef bool val_bool
 typedef signed char val_char;
 typedef unsigned char val_uchar;
 typedef int val_int;
@@ -68,9 +74,17 @@ typedef struct {
   char* type;
 } val_obj;
 
+typedef struct {
+  ag_val* head;
+  val_list* tail;
+} val_list;
+
+typedef char* val_symbol;
+
 // TODO: Also need to add the val_fptr and val_obj to this union
 typedef union {
   val_err Error;
+  val_bool Bool;
   val_char Char;
   val_uchar UChar;
   val_int Int;
@@ -87,6 +101,8 @@ typedef union {
   val_cldouble CLDouble;
   val_ptr Ptr;
   val_obj Obj;
+  val_list* List;
+  val_symbol Symbol;
 } val_value;
 
 // Struct which holds the return value/error conditions of an expression.
@@ -95,10 +111,14 @@ typedef struct {
   val_type type;
 } ag_val;
 
-// Return an val_value representing the long x.
-ag_val make_ag_val_long(val_long x);
-ag_val make_ag_val_err(val_err e);
-// You must free the string when you are done.
-char* val_to_string(ag_val v);
+// Return a val_value representing the long x.
+ag_val* make_ag_val_long(val_long x);
+ag_val* make_ag_val_err(val_err e);
+ag_val* make_ag_val_bool(val_bool b);
+ag_val* make_ag_val_list(val_list list);
+ag_val* make_ag_val_symbol(val_symbol sym);
+val_list make_val_list(ag_val* head, val_list* tail);
 
-#endif /* _SIMPLE_LISP_VAL_H */
+// You must free the string when you are done.
+char* ag_val_to_string(ag_val v);
+

@@ -1,5 +1,5 @@
 string-helpers.o: string-helpers.c /usr/include/stdc-predef.h \
- include/string-helpers.h include/lval.h include/macros.h \
+ include/string-helpers.h include/val.h include/macros.h \
  /usr/include/string.h /usr/include/features.h \
  /usr/include/x86_64-linux-gnu/sys/cdefs.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \

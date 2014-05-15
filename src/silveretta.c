@@ -1,7 +1,7 @@
 #include "debug.h"
 #include "linedit.h"
 #include "eval.h"
-#include "lval.h"
+#include "val.h"
 #include "types.h"
 
 #include "mpc.h"
@@ -11,21 +11,23 @@
 #include <string.h>
 
 int main(int argc, char** argv) {
-  mpc_parser_t* silveretta = mpc_new("silveretta");
-  mpc_parser_t* sexpr = mpc_new("sexpr");
-  mpc_parser_t* expr = mpc_new("expr");
-  mpc_parser_t* ag_symbol = mpc_new("ag_symbol");
   mpc_parser_t* long_num = mpc_new("long_num");
+  mpc_parser_t* symbol = mpc_new("symbol");
+  mpc_parser_t* nil = mpc_new("nil");
+  mpc_parser_t* list = mpc_new("list");
+  mpc_parser_t* sexp = mpc_new("sexp");
+  mpc_parser_t* silveretta = mpc_new("silveretta");
 
   mpca_lang(MPC_LANG_DEFAULT,
 	    "                                                   \
              long_num    : /-?[0-9]+/ ;                         \
-             ag_symbol : '+' | '-' | '*' | '/' ;              \
-             sexpr    : '(' <lisp_symbol> <expr>* ')' ;         \
-             expr     : <long_num> | <lisp_symbol> | <sexpr> ;    \
-             silveretta    : /^/ <expr>* /$/ ;                       \
+             symbol : '+' | '-' | '*' | '/' | 'if';              \
+             nil :   'nil' | '()'
+             list    : '(' <symbol> <sexp>* ')' ;         \
+             sexp     : <long_num> | <symbol> | <list> | <nil> ;    \
+             silveretta    : /^/ <sexp>* /$/ ;                       \
             ",
-	    long_num, ag_symbol, sexpr, expr, silveretta);
+	    long_num, symbol, nil, list, sexp, silveretta);
 
   puts("WalkerLisp Version 1.0");
   puts("Press Ctrl+c to Exit\n");
@@ -52,6 +54,6 @@ int main(int argc, char** argv) {
     free(input);
   }
 
-  mpc_cleanup(5, long_num, ag_symbol, sexpr, expr, silveretta);
+  mpc_cleanup(5, long_num, symbol, nil, list, sexp, silveretta);
   return EXIT_SUCCESS;
 }
