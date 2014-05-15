@@ -2,9 +2,11 @@
 
 #include "val.h"
 
-typedef char** string_array 
+typedef char* string;
+typedef char** string_array;
 
-typedef struct {
+typedef struct str_list {
   char* str;
-  str_list* next;
+  struct str_list* next;
 } str_list;
+

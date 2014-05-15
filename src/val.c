@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+
 #include "val.h"
 #include "macros.h"
 #include "string-helpers.h"
@@ -179,7 +181,7 @@ ag_val* ag_read(mpc_ast_t* ast) {
   if (strstr(ast->tag, "symbol")) return ag_read_symbol(ast);
   if (strstr(ast->tag, "nil")) return ag_read_nil(ast);
   if (!strcmp(ast->tag, ">")) {
-    return ag_read_list(ast->children[1]);
+    return ag_read(ast->children[1]);
   }
   if (strstr(ast->tag, "list")) {
     return ag_read_list(ast);
@@ -187,12 +189,12 @@ ag_val* ag_read(mpc_ast_t* ast) {
   return make_ag_val_err(make_val_err(strdup("Read error.")));
 }
 
-str_list* val_list_alprint(val_list* v) {
+struct str_list* val_list_alprint(val_list* v) {
   // a == allocated
   // l == list
   // Must free.
-  str_list* head = malloc(sizeof(str_list));
-  str_list* sl_it = head;
+  struct str_list* head = malloc(sizeof(str_list));
+  struct str_list* sl_it = head;
   val_list* v_it = v;
 
   do {
@@ -207,7 +209,7 @@ str_list* val_list_alprint(val_list* v) {
   return head;
 }
 
-void str_list_del(str_list sl*) {
+void str_list_del(struct str_list* sl) {
   if (sl) {
     if (sl->next->str) {
       str_list_del(sl->next);
@@ -217,6 +219,8 @@ void str_list_del(str_list sl*) {
   }
 }
 
+#define oom_asprintf {do { eprintf("%s", "out of memory!"); abort(); } while(0);}
+
 char* ag_sprint(ag_val* v) {
   // FIXME : Finish this.
   // The caller must free the string.
@@ -225,12 +229,12 @@ char* ag_sprint(ag_val* v) {
   }
   switch (v->type) {
   case AG_TYPE_LONG:
-    char** strp;
-    if (asprintf(strp, "%li", v->val.Long) == -1) {
-      eprintf("%s", "out of memory!");
-      abort();
+    ;
+    char* strp;
+    if (asprintf(&strp, "%li", v->val.Long) == -1) {
+      oom_asprintf;
     }
-    return *strp;
+    return strp;
     break;
   case AG_TYPE_ERR:
     return strdup(v->val.Error.msg);
@@ -240,42 +244,28 @@ char* ag_sprint(ag_val* v) {
     break;
   case AG_TYPE_LIST:
     ; // FIXME WTF WHY DO I NEED THIS RANDOMLY?
-    string* curr;
-    string* next;
+    string curr;
+    string next;
     str_list* sl = val_list_alprint(v->val.List);
     str_list* sl_it = sl;
-    asprintf(next, "(%s", sl->str);
-    while (sl->next->str) {
+    if (asprintf(&next, "(%s", sl->str) == -1) {
+      oom_asprintf;
+    }
+    while (sl_it->next->str) {
       curr = next;
-      asprintf(next, "%s %s", *curr, sl_it->next->str);
-      free(*curr);
+      if (asprintf(&next, "%s %s", curr, sl_it->next->str) == -1) {
+	oom_asprintf;
+      }
+      free(curr);
       sl_it = sl_it->next;
     }
     str_list_del(sl);
     curr = next;
-    asprintf(next, "%s)", *curr);
-    free(*curr);
-    return *next;
-    
-    /* ag_val* head = v->val.List->head; */
-    /* ag_val* tail = make_ag_val_list(v->val.List->tail); */
-    /* char* head_str = ag_val_to_string(head); */
-    /* char* tail_str = tail->val.List ? ag_val_to_string(tail) : NULL; */
-    /* int n; */ 
-    /* if (tail_str) { */
-    /*   n = snprintf(NULL, 0, "(%s %s)", head_str, tail_str); */
-    /*   char* buf = malloc(sizeof(char) * (n+1)); */
-    /*   snprintf(buf, n+1, "(%s %s)", head_str, tail_str); */
-    /*   free(head_str); */
-    /*   free(tail_str); */
-    /*   return buf; */
-    /* } else { */
-    /*   n = snprintf(NULL, 0, "(%s)", head_str); */
-    /*   char* buf = malloc(sizeof(char) * (n+1)); */
-    /*   snprintf(buf, n+1, "(%s)", head_str); */
-    /*   free(head_str); */
-    /*   return buf; */
-    /* } */
+    if (asprintf(&next, "%s)", curr) == -1) {
+      oom_asprintf;
+    }
+    free(curr);
+    return next;
     break;
   case AG_TYPE_SYMBOL:
     return strdup(v->val.Symbol);
@@ -289,8 +279,7 @@ char* ag_sprint(ag_val* v) {
 }
 
 void ag_print(ag_val* value) {
-  char* value_str = ag_val_to_string(value);
+  char* value_str = ag_sprint(value);
   printf("%s", value_str);
   free(value_str);
-  return;
 }

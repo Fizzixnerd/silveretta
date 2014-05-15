@@ -1,6 +1,7 @@
 #pragma once
 
 #include "macros.h"
+#include "string-helpers.h"
 
 #include "mpc.h"
 
@@ -131,5 +132,8 @@ ag_val* ag_read_nil(mpc_ast_t* ast);
 ag_val* ag_read_symbol(mpc_ast_t* ast);
 ag_val* ag_read_list(mpc_ast_t* ast);
 
-char* ag_val_to_string(ag_val* v);
+struct str_list* val_list_alprint(val_list* v);
+void str_list_del(struct str_list* sl);
+
+char* ag_sprint(ag_val* v);
 void ag_print(ag_val* v);

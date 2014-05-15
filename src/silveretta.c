@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
     if (mpc_parse("<stdin>", input, silveretta, &r)) {
       mpc_ast_print(r.output);
       ag_val* result = ag_read(r.output);
-      char* result_str = ag_val_to_string(result);
+      char* result_str = ag_sprint(result);
       printf("%s\n", result_str);
       free(result_str);
       mpc_ast_delete(r.output);
