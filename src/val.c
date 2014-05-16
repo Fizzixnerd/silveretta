@@ -198,12 +198,13 @@ struct str_list* val_list_alprint(val_list* v) {
   val_list* v_it = v;
 
   do {
-    sl_it->str = ag_sprint(v->head);
+    sl_it->str = ag_sprint(v_it->head);
     sl_it->next = malloc(sizeof(str_list));
-    sl_it->next->str = NULL;
-    sl_it->next->next = NULL;
     sl_it = sl_it->next;
     v_it = v_it->tail;
+    sl_it->str = NULL;
+    sl_it->next = NULL;
+
   }
   while (v_it);
   return head;
@@ -277,6 +278,8 @@ char* ag_sprint(ag_val* v) {
     return "Error: Can't stringify the lval given to lval_to_string.";
   }
 }
+
+#undef oom_printf
 
 void ag_print(ag_val* value) {
   char* value_str = ag_sprint(value);
