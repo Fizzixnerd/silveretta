@@ -7,7 +7,7 @@
    (ede-proj-target-makefile-program "silveretta"
     :name "silveretta"
     :path ""
-    :source '("silveretta.c" "string-helpers.c" "val.c" "mpc.c" "eval.c")
+    :source '("silveretta.c" "string-helpers.c" "val.c" "mpc.c" "eval.c" "read.c" "print.c" "list.c" "error.c")
     )
    )
   )

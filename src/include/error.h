@@ -1,8 +1,10 @@
 #pragma once
 
 #include "val.h"
-
+#include "types.h"
 #include <string.h>
+
+val_err make_val_err(char* msg);
 
 #define OUT_OF_MEMORY_ERR strdup("ERROR: Out of memory.")
 #define DIV_ZERO_ERR strdup("ERROR: Division by zero.")

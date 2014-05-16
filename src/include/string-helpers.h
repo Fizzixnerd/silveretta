@@ -1,12 +1,12 @@
 #pragma once
 
-#include "val.h"
+#include "types.h"
 
-typedef char* string;
-typedef char** string_array;
-
-typedef struct str_list {
+struct str_list {
   char* str;
   struct str_list* next;
-} str_list;
+};
+typedef struct str_list str_list;
 
+str_list* val_list_alprint(val_list* v);
+void str_list_del(struct str_list* sl);

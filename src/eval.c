@@ -1,7 +1,9 @@
 #include "eval.h"
 #include "val.h"
+#include "types.h"
 #include "debug.h"
-#include "errors.h"
+#include "print.h"
+#include "error.h"
 #include "types.h"
 
 #include "mpc.h"

@@ -11,8 +11,8 @@ ede_FILES=Project.ede Makefile
 
 include Makefile.cincludes
 
-silveretta_SOURCES=silveretta.c string-helpers.c val.c mpc.c eval.c
-silveretta_OBJ= silveretta.o string-helpers.o val.o mpc.o eval.o
+silveretta_SOURCES=silveretta.c string-helpers.c val.c mpc.c eval.c read.c print.c list.c error.c
+silveretta_OBJ= silveretta.o string-helpers.o val.o mpc.o eval.o read.o print.o list.o error.o
 CC=gcc
 C_COMPILE=$(CC) $(DEFS) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
 C_DEPENDENCIES=-Wp,-MD,.deps/$(*F).P
@@ -21,7 +21,7 @@ VERSION=1.0
 DISTDIR=$(top)Silveretta-$(VERSION)
 top_builddir = 
 
-DEP_FILES=.deps/silveretta.P .deps/string-helpers.P .deps/val.P .deps/mpc.P .deps/eval.P
+DEP_FILES=.deps/silveretta.P .deps/string-helpers.P .deps/val.P .deps/mpc.P .deps/eval.P .deps/read.P .deps/print.P .deps/list.P .deps/error.P
 
 all: silveretta
 

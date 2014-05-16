@@ -1,4 +1,6 @@
 #include "debug.h"
+#include "read.h"
+#include "print.h"
 #include "eval.h"
 #include "val.h"
 #include "types.h"
@@ -12,6 +14,7 @@
 
 int main(int argc, char** argv) {
   mpc_parser_t* long_num = mpc_new("long_num");
+  mpc_parser_t* nil_str = mpc_new("nil_str");
   mpc_parser_t* symbol = mpc_new("symbol");
   mpc_parser_t* nil = mpc_new("nil");
   mpc_parser_t* list = mpc_new("list");
@@ -19,15 +22,16 @@ int main(int argc, char** argv) {
   mpc_parser_t* silveretta = mpc_new("silveretta");
 
   mpca_lang(MPC_LANG_DEFAULT,
-	    "                                                   \
-             long_num    : /-?[0-9]+/ ;                         \
-             symbol : '+' | '-' | '*' | '/' ;              \
-             nil :   '(' ')' ;                                \
-             list    : '(' <symbol> <sexp>* ')' ;         \
-             sexp     : <long_num> | <symbol> | <list> | <nil> ;    \
-             silveretta    : /^/ <sexp>* /$/ ;                       \
+	    "                                                       \
+             long_num   : /-?[0-9]+/                             ;  \
+             nil        : '(' ')' | <nil_str>                    ;  \
+             nil_str    : 'n' 'i' 'l'                            ;  \
+             symbol     : /[a-z]+/ | '+' | '-' | '*' | '/'       ;  \
+             list       : '(' <symbol> <sexp>* ')' | <nil>       ;  \
+             sexp       : <long_num> | <symbol> | <list> | <nil> ;  \
+             silveretta : /^/ <sexp>* /$/                        ;  \
             ",
-	    long_num, symbol, nil, list, sexp, silveretta);
+	    long_num, nil, nil_str, symbol, list, sexp, silveretta);
 
   puts("WalkerLisp Version 1.0");
   puts("Press Ctrl+c to Exit\n");
@@ -41,9 +45,7 @@ int main(int argc, char** argv) {
     if (mpc_parse("<stdin>", input, silveretta, &r)) {
       mpc_ast_print(r.output);
       ag_val* result = ag_read(r.output);
-      char* result_str = ag_sprint(result);
-      printf("%s\n", result_str);
-      free(result_str);
+      ag_print(result);
       mpc_ast_delete(r.output);
     } else {
       /* Otherwise print the error. */
@@ -54,6 +56,6 @@ int main(int argc, char** argv) {
     free(input);
   }
 
-  mpc_cleanup(6, long_num, symbol, nil, list, sexp, silveretta);
+  mpc_cleanup(7, long_num, nil, nil_str, symbol, list, sexp, silveretta);
   return EXIT_SUCCESS;
 }
