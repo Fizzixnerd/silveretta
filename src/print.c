@@ -31,14 +31,21 @@ char* ag_sprint(ag_val* v) {
   case AG_TYPE_LIST:
     ;
     // FIXME WTF WHY DO I NEED THIS RANDOMLY?
-    // Lets use open_memstream instead, because it's fucking awesome.
+
+    if (!v->val.List) {
+      return strdup("()");
+    }
 
     string result;
     size_t result_size;
     FILE* fp = open_memstream(&result, &result_size);
     fprintf(fp, "%s", "(");
-    for (val_list* vl = v->val.List; vl; vl = vl->tail) {
+    for (val_list* vl = v->val.List; vl; vl = vl->tail->val.List) {
       fprintf(fp, "%s ", ag_sprint(vl->head));
+      if (vl->tail->type != AG_TYPE_LIST) {
+	fprintf(fp, "%s ", ag_sprint(vl->tail));
+	break;
+      }
     }
     fclose(fp);
     result[result_size-1] = ')';

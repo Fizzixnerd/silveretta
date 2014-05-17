@@ -14,9 +14,7 @@
 
 int main(int argc, char** argv) {
   mpc_parser_t* long_num = mpc_new("long_num");
-  mpc_parser_t* nil_str = mpc_new("nil_str");
   mpc_parser_t* symbol = mpc_new("symbol");
-  mpc_parser_t* nil = mpc_new("nil");
   mpc_parser_t* list = mpc_new("list");
   mpc_parser_t* sexp = mpc_new("sexp");
   mpc_parser_t* silveretta = mpc_new("silveretta");
@@ -24,14 +22,12 @@ int main(int argc, char** argv) {
   mpca_lang(MPC_LANG_DEFAULT,
 	    "                                                       \
              long_num   : /-?[0-9]+/                             ;  \
-             nil        : '(' ')' | <nil_str>                    ;  \
-             nil_str    : 'n' 'i' 'l'                            ;  \
              symbol     : /[a-z]+/ | '+' | '-' | '*' | '/'       ;  \
-             list       : '(' <symbol> <sexp>* ')' | <nil>       ;  \
-             sexp       : <long_num> | <symbol> | <list> | <nil> ;  \
+             list       : '(' <symbol>* <sexp>* ')'              ;  \
+             sexp       : <long_num> | <symbol> | <list>         ;  \
              silveretta : /^/ <sexp>* /$/                        ;  \
             ",
-	    long_num, nil, nil_str, symbol, list, sexp, silveretta);
+	    long_num, symbol, list, sexp, silveretta);
 
   puts("WalkerLisp Version 1.0");
   puts("Press Ctrl+c to Exit\n");
@@ -44,8 +40,9 @@ int main(int argc, char** argv) {
     mpc_result_t r;
     if (mpc_parse("<stdin>", input, silveretta, &r)) {
       mpc_ast_print(r.output);
-      ag_val* result = ag_read(r.output);
-      ag_print(result);
+      ag_val* read_result = ag_read(r.output);
+      ag_val* eval_result = ag_eval(read_result);
+      ag_print(eval_result);
       mpc_ast_delete(r.output);
     } else {
       /* Otherwise print the error. */
@@ -56,6 +53,6 @@ int main(int argc, char** argv) {
     free(input);
   }
 
-  mpc_cleanup(7, long_num, nil, nil_str, symbol, list, sexp, silveretta);
+  mpc_cleanup(5, long_num, symbol, list, sexp, silveretta);
   return EXIT_SUCCESS;
 }

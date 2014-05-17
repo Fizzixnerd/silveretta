@@ -2,10 +2,11 @@
 #include "val.h"
 #include "debug.h"
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-val_list* make_val_list(ag_val* head, val_list* tail) {
+val_list* make_val_list(ag_val* head, ag_val* tail) {
   
   val_list* list = malloc(sizeof(val_list));
   if (list) {
@@ -19,22 +20,41 @@ val_list* make_val_list(ag_val* head, val_list* tail) {
 }
 
 void val_list_del(val_list* list) {
+  if (!list) return;
+  
   ag_val_del(list->head);
-  val_list_del(list->tail);
+  ag_val_del(list->tail);
   free(list);
 }
 
-val_list* val_list_append_list(val_list* v, val_list* tail) {
-  if (!v->tail) {
-    v->tail = tail;
+ag_val* ag_list_append(ag_val* v, ag_val* tail) {
+  if (!v) {
+    if (!tail) {
+      // both nil.
+      return NULL;
+    } else {
+      // tail non-nil
+      if (tail->type == AG_TYPE_LIST) {
+	return tail;
+      } else {
+	return make_ag_val_list(make_val_list(tail, NULL));
+      }
+    }
   } else {
-    val_list_append_list(v->tail, tail);
+    // v is non-nil list
+    assert(v->type == AG_TYPE_LIST);
+    val_list* vl = v->val.List;
+    if (!vl->tail) {
+      // v's tail is nil
+      vl->tail = tail;
+    } else {
+      // v's tail is non-nil
+      ag_list_append(vl->tail, tail);
+    }
   }
   return v;
 }
 
-val_list* val_list_append_ag_val(val_list* v, ag_val* tail_val) {
-  val_list* tail = make_val_list(tail_val, NULL);
-  return val_list_append_list(v, tail);
+ag_val* val_list_pop(val_list* v) {
+  return v ? v->head : NULL;
 }
-

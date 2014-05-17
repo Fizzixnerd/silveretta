@@ -80,7 +80,7 @@ typedef char* val_symbol;
 
 struct val_list {
   struct ag_val* head;
-  struct val_list* tail;
+  struct ag_val* tail;
 };
 typedef struct val_list val_list;
 

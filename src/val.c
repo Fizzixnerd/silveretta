@@ -93,8 +93,16 @@ void ag_val_del(ag_val *v) {
   case AG_TYPE_LIST:
     val_list_del(v->val.List);
     break;
+  default:
+    abort();
+    break;
   }
   free(v);
   return;
 }
 
+ag_val* ag_pop(ag_val* v) {
+  assert(v->type == AG_TYPE_LIST);
+
+  return val_list_pop(v->val.List);
+}

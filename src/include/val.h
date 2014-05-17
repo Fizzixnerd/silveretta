@@ -12,3 +12,4 @@ ag_val* make_ag_val_err(val_err e);
 ag_val* make_ag_val_bool(val_bool b);
 ag_val* make_ag_val_list(val_list* list);
 ag_val* make_ag_val_symbol(val_symbol sym);
+ag_val* ag_pop(ag_val* v);

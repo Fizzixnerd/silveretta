@@ -2,7 +2,7 @@
 
 #include "types.h"
 
-val_list* make_val_list(ag_val* head, val_list* tail);
+val_list* make_val_list(ag_val* head, ag_val* tail);
 void val_list_del(val_list* list);
-val_list* val_list_append_list(val_list* v, val_list* tail);
-val_list* val_list_append_ag_val(val_list* v, ag_val* tail_val);
+ag_val* ag_list_append(ag_val* v, ag_val* tail);
+ag_val* val_list_pop(val_list* v);
