@@ -1,10 +1,10 @@
 #include "eval.h"
+
 #include "val.h"
 #include "types.h"
 #include "debug.h"
 #include "print.h"
 #include "error.h"
-#include "types.h"
 
 #include "mpc.h"
 
@@ -28,7 +28,7 @@ ag_val* ag_eval(ag_val* sexp) {
     return ag_eval_list(sexp);
     break;
   default:
-    return make_ag_val_err(make_val_err(strdup("Type error.")));
+    return mk_ag_val_err(mk_val_err(strdup("Type error.")));
   }
 }
 
@@ -70,7 +70,7 @@ ag_val* ag_builtin_op(val_symbol sym, ag_val* list) {
   } else {
     string err_msg;
     asprintf(&err_msg, "Undefined symbol %s.", sym);
-    return make_ag_val_err(make_val_err(err_msg));
+    return mk_ag_val_err(mk_val_err(err_msg));
   }
 }
 
@@ -80,7 +80,7 @@ ag_val* ag_builtin_op_assert_valid_list(val_symbol op_sym, ag_val* list) {
   if (!vl) {
     string err_msg;
     asprintf(&err_msg, "%s requires at least one operand, 0 given.", op_sym);
-    return make_ag_val_err(make_val_err(err_msg));
+    return mk_ag_val_err(mk_val_err(err_msg));
   } else if (!vl->tail) {
     assert(vl->head);
     if (vl->head->type == AG_TYPE_ERR) return vl->head;
@@ -106,7 +106,7 @@ ag_val* ag_plus(ag_val* list) {
   if (assert_result) {
     return assert_result;
   } else {
-    return make_ag_val_long(ag_plus_calc(list));
+    return mk_ag_val_long(ag_plus_calc(list));
   }
 }
 
@@ -128,7 +128,7 @@ ag_val* ag_minus(ag_val* list) {
   if (assert_result) {
     return assert_result;
   } else {
-    return make_ag_val_long(ag_minus_calc(list));
+    return mk_ag_val_long(ag_minus_calc(list));
   }
 }
 
@@ -148,7 +148,7 @@ ag_val* ag_multiply(ag_val* list) {
   if (assert_result) {
     return assert_result;
   } else {
-    return make_ag_val_long(ag_multiply_calc(list));
+    return mk_ag_val_long(ag_multiply_calc(list));
   }
 }
 
@@ -168,6 +168,6 @@ ag_val* ag_divide(ag_val* list) {
   if (assert_result) {
     return assert_result;
   } else {
-    return make_ag_val_long(ag_divide_calc(list));
+    return mk_ag_val_long(ag_divide_calc(list));
   }
 }

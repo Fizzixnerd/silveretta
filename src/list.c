@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-val_list* make_val_list(ag_val* head, ag_val* tail) {
+val_list* mk_val_list(ag_val* head, ag_val* tail) {
   
   val_list* list = malloc(sizeof(val_list));
   if (list) {
@@ -19,11 +19,7 @@ val_list* make_val_list(ag_val* head, ag_val* tail) {
   }
 }
 
-void val_list_del(val_list* list) {
-  if (!list) return;
-  
-  ag_val_del(list->head);
-  ag_val_del(list->tail);
+void del_val_list(val_list* list) {
   free(list);
 }
 
@@ -37,7 +33,7 @@ ag_val* ag_list_append(ag_val* v, ag_val* tail) {
       if (tail->type == AG_TYPE_LIST) {
 	return tail;
       } else {
-	return make_ag_val_list(make_val_list(tail, NULL));
+	return mk_ag_val_list(mk_val_list(tail, NULL));
       }
     }
   } else {

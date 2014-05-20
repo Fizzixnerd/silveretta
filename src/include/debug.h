@@ -8,6 +8,7 @@
 #ifdef AG_DEBUG
 #undef AG_DEBUG
 #define AG_DEBUG 1
+#define DEBUG
 #define dprint(...) {debugloc(); fprintf(stderr, __VA_ARGS__);}
 #define dputln(str) {debugloc(); fprintf(stderr, "%s\n", str);}
 #define eprintf(...) dprint(__VA_ARGS__)

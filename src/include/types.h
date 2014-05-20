@@ -4,7 +4,8 @@
 #define bool _Bool
 typedef char* string;
 
-typedef string ag_symbol;
+#define true 1
+#define false 0
 
 // ag_val stands for "silveretta value".
 // This is basically an implementation of a tagged union, at the end of the day.
@@ -76,7 +77,7 @@ typedef struct {
   string type;
 } val_obj;
 
-typedef char* val_symbol;
+typedef string val_symbol;
 
 struct val_list {
   struct ag_val* head;

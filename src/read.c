@@ -3,6 +3,7 @@
 #include "types.h"
 #include "val.h"
 #include "list.h"
+#include "symbol.h"
 #include "error.h"
 
 #include "mpc.h"
@@ -18,20 +19,20 @@ ag_val* ag_read(mpc_ast_t* ast) {
   if (!strcmp(ast->tag, ">")) return ag_read(ast->children[1]);
   if (strstr(ast->tag, "list")) return ag_read_list(ast);
   
-  return make_ag_val_err(make_val_err(strdup("Read error.")));
+  return mk_ag_val_err(mk_val_err(strdup("Read error.")));
 }
 
 ag_val* ag_read_long(mpc_ast_t* ast) {
   assert(strstr(ast->tag, "long_num"));
   errno = 0;
   long x = strtol(ast->contents, NULL, 10);
-  return errno != ERANGE ? make_ag_val_long(x) :
-    make_ag_val_err(make_val_err("Invalid long."));
+  return errno != ERANGE ? mk_ag_val_long(x) :
+    mk_ag_val_err(mk_val_err(strdup("Invalid long.")));
 }
 
 ag_val* ag_read_symbol(mpc_ast_t* ast) {
   assert(strstr(ast->tag, "symbol"));
-  return make_ag_val_symbol(strdup(ast->contents));
+  return mk_ag_val_symbol(mk_val_symbol(strdup(ast->contents)));
 }
 
 ag_val* ag_read_list(mpc_ast_t* ast) {
@@ -40,7 +41,7 @@ ag_val* ag_read_list(mpc_ast_t* ast) {
     return NULL;
   }
 
-  ag_val* list = make_ag_val_list(make_val_list(ag_read(ast->children[1]), NULL));
+  ag_val* list = mk_ag_val_list(mk_val_list(ag_read(ast->children[1]), NULL));
   int i = 2;
   ag_val* curr_list = NULL;
   ag_val* next_list = list;
@@ -48,7 +49,7 @@ ag_val* ag_read_list(mpc_ast_t* ast) {
   while (strcmp(ast->children[i]->contents, ")") && (i < ast->children_num)) {
     if (!strcmp(ast->children[i]->contents, "regex")) continue;
     curr_list = next_list;
-    next_list = make_ag_val_list(make_val_list(ag_read(ast->children[i]), NULL));
+    next_list = mk_ag_val_list(mk_val_list(ag_read(ast->children[i]), NULL));
     ag_list_append(curr_list, next_list);
     ++i;
   }

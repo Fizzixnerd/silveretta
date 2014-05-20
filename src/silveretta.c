@@ -39,7 +39,7 @@ int main(int argc, char** argv) {
 
     mpc_result_t r;
     if (mpc_parse("<stdin>", input, silveretta, &r)) {
-      mpc_ast_print(r.output);
+      //      mpc_ast_print(r.output);
       ag_val* read_result = ag_read(r.output);
       ag_val* eval_result = ag_eval(read_result);
       ag_print(eval_result);

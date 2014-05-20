@@ -34,5 +34,5 @@ read.o: read.c /usr/include/stdc-predef.h include/read.h include/types.h \
  /usr/include/x86_64-linux-gnu/bits/errno.h /usr/include/linux/errno.h \
  /usr/include/x86_64-linux-gnu/asm/errno.h \
  /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
- include/val.h include/string-helpers.h include/list.h include/error.h \
- include/mpc.h /usr/include/assert.h
+ include/val.h include/string-helpers.h include/list.h include/symbol.h \
+ include/error.h include/mpc.h /usr/include/assert.h
