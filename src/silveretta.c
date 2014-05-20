@@ -4,6 +4,7 @@
 #include "eval.h"
 #include "val.h"
 #include "types.h"
+#include "variable.h"
 
 #include "mpc.h"
 
@@ -41,9 +42,12 @@ int main(int argc, char** argv) {
     if (mpc_parse("<stdin>", input, silveretta, &r)) {
       //      mpc_ast_print(r.output);
       ag_val* read_result = ag_read(r.output);
-      ag_val* eval_result = ag_eval(read_result);
+      env* e = malloc(sizeof(env));
+      *e = NULL;
+      ag_val* eval_result = ag_eval(read_result, e);
       ag_print(eval_result);
       mpc_ast_delete(r.output);
+      del_env(e);
     } else {
       /* Otherwise print the error. */
       dputln("There was an error with the AST.")

@@ -49,12 +49,12 @@ void del_env(env* e) {
 }
 
 void ag_lex_add(env* e, bind* b) {
-  HASH_ADD_STR(*e, sym, b);
+  HASH_ADD_KEYPTR(hh, *e, b->sym, strlen(b->sym), b);
 }
 
 bind* ag_lex_replace(env* e, bind* b) {
   bind* replaced;
-  HASH_REPLACE_STR(*e, sym, b, replaced);
+  HASH_REPLACE(hh, *e, sym, strlen(b->sym), b, replaced);
   return replaced;
 }
 
@@ -82,8 +82,11 @@ bind* ag_lex_find_rm(env* e, ag_val* sym) {
 }
 
 void ag_lex_push(env* e, bind* b) {
-  bind* lower_binds = ag_lex_replace(e, b);
-  b->next = lower_binds;
+  ag_val* s = mk_ag_val_symbol(strdup(b->sym));
+  bind* removed = ag_lex_find_rm(e, s);
+  b->next = removed;
+  ag_lex_add(e, b);
+  del_ag_val(s);
 }
 
 bind* ag_lex_pop(env* e, bind* b) {
@@ -100,6 +103,7 @@ bind* ag_lex_find_pop(env* e, ag_val* sym) {
 }
 
 bind* ag_lex_cp(bind* b) {
+  if (!b) return NULL;
   bind* cpy = malloc(sizeof(bind));
   cpy->sym = b->sym;
   cpy->val = b->val;
@@ -128,7 +132,7 @@ env* ag_lex_pop_env(env* main, env* other) {
 }
 
 env* ag_lex_cp_env_top(env* main) {
-  env* result = malloc(sizeof(env));
+  env* result = mk_env();
   bind* b;
   for (b=*main; b; b=b->hh.next) {
     ag_lex_add(result, ag_lex_cp(b));

@@ -7,7 +7,7 @@
 
 #define oom_asprintf {do { eprintf("%s", "out of memory!"); abort(); } while(0);}
 
-char* ag_sprint(ag_val* v) {
+char* ag_asprint(ag_val* v) {
   // FIXME : Finish this.
   // The caller must free the string.
   if (!v) {
@@ -41,9 +41,9 @@ char* ag_sprint(ag_val* v) {
     FILE* fp = open_memstream(&result, &result_size);
     fprintf(fp, "%s", "(");
     for (val_list* vl = v->val.List; vl; vl = vl->tail->val.List) {
-      fprintf(fp, "%s ", ag_sprint(vl->head));
+      fprintf(fp, "%s ", ag_asprint(vl->head));
       if (vl->tail->type != AG_TYPE_LIST) {
-	fprintf(fp, "%s ", ag_sprint(vl->tail));
+	fprintf(fp, "%s ", ag_asprint(vl->tail));
 	break;
       }
     }
@@ -65,7 +65,7 @@ char* ag_sprint(ag_val* v) {
 #undef oom_printf
 
 void ag_print(ag_val* value) {
-  char* value_str = ag_sprint(value);
+  char* value_str = ag_asprint(value);
   printf("%s\n", value_str);
   free(value_str);
 }
