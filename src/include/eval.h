@@ -18,6 +18,11 @@ ag_val* ag_try_builtin(ag_val* sym, ag_val* list, env* e);
 ag_val* ag_builtin_op_assert_valid_list(val_symbol op_sym, ag_val* list);
 
 ag_val* ag_let(ag_val* list, env* e);
+ag_val* ag_if(ag_val* list, env* e);
+ag_val* ag_while(ag_val* list, env* e);
+ag_val* ag_do(ag_val* list, env* e);
+ag_val* ag_set(ag_val* list, env* e);
+ag_val* ag_setBang(ag_val* list, env* e);
 ag_val* ag_plus(ag_val* list, env* e);
 ag_val* ag_minus(ag_val* list, env* e);
 ag_val* ag_multiply(ag_val* list, env* e);

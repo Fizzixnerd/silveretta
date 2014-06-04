@@ -39,5 +39,5 @@ eval.o: eval.c /usr/include/stdc-predef.h include/eval.h include/val.h \
  /usr/include/x86_64-linux-gnu/bits/errno.h /usr/include/linux/errno.h \
  /usr/include/x86_64-linux-gnu/asm/errno.h \
  /usr/include/asm-generic/errno.h /usr/include/asm-generic/errno-base.h \
- include/debug.h include/print.h include/error.h include/mpc.h \
- /usr/include/assert.h
+ include/bool.h include/list.h include/debug.h include/print.h \
+ include/error.h include/mpc.h /usr/include/assert.h

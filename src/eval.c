@@ -1,6 +1,8 @@
 #include "eval.h"
 
 #include "val.h"
+#include "bool.h"
+#include "list.h"
 #include "types.h"
 #include "debug.h"
 #include "print.h"
@@ -29,7 +31,7 @@ ag_val* ag_eval(ag_val* sexp, env* e) {
     return ag_eval_list(sexp, e);
     break;
   default:
-    ;
+    ;  // I don't fucking know anymore.
     string err_msg;
     string sexp_str = ag_asprint(sexp);
     asprintf(&err_msg, "%s", sexp_str);
@@ -103,6 +105,8 @@ ag_val* ag_let(ag_val* list, env* e) {
   // looks like (let (x gets 7) <sexp>)
   // so that list == ((x gets 7) <sexp>)
 
+  // TODO: Make these asserts runtime errors!
+  assert(list->type == AG_TYPE_LIST);
   ag_val* gets_list = list->val.List->head;
   assert(gets_list);
   assert(gets_list->type == AG_TYPE_LIST);
@@ -123,6 +127,117 @@ ag_val* ag_let(ag_val* list, env* e) {
   bind* b = mk_bind(bound_val, bound_symbol, false);
   ag_lex_push(e, b);
   return ag_eval(wrapped_sexp, e);
+}
+
+ag_val* ag_if(ag_val* list, env* e) {
+  // looks like (if <condition> (then <then-sexp>) [ (else <else-sexp>) ])
+  // so list == (<cond> (then <tsexp>) [ (else <esexp>) ])
+  // or list == (<cond> <sexp1> [ <sexp2> ])
+
+  // TODO: Make these asserts runtime errors!
+  assert(list->type == AG_TYPE_LIST);
+  ag_val* cond = ag_head(list);
+  assert(cond);
+  ag_val* sexp1 = ag_head(ag_tail(list));
+  assert(sexp1);
+  ag_val* sexp2 = ag_tail(ag_tail(list)) ?
+                  ag_head(ag_tail(ag_tail(list))) :
+                  NULL ;
+  assert(!ag_tail(ag_tail(ag_tail(list))));
+
+  ag_val* cond_val = ag_to_bool(ag_eval(cond, e), e);
+  ag_val* tsexp = ag_head(ag_tail(sexp1));
+  ag_val* esexp = sexp2 ? ag_head(ag_tail(sexp2)) :
+                          NULL ;
+  assert(cond_val->type == AG_TYPE_BOOL);
+  
+  if (cond_val->val.Bool) {
+    return ag_eval(tsexp, e);
+  } else {
+    return ag_eval(esexp, e);
+  }
+}
+
+ag_val* ag_while(ag_val* list, env* e) {
+  // looks like (while <condition> [ <sexp>* ])
+  // so list == (<cond> . <sexps>)
+
+  ag_val* cond  = ag_head(list);
+  ag_val* sexps = ag_tail(list);
+  ag_val* cond_val = ag_to_bool(cond, e);
+  ag_val* result = NULL;
+  while (cond_val) {
+    result = ag_do(sexps, e);
+  }
+  return result;
+}
+
+ag_val* ag_do(ag_val* list, env* e) {
+  // looks like (do <sexp>*)
+  // so list == (<sexp>*)
+  ag_val* it;
+  ag_val* result;
+  for (it = ag_head(list); it; it = ag_tail(it)) {
+    result = ag_eval(it, e);
+  }
+  return result;
+}
+
+ag_val* ag_quote(ag_val* list, env* e) {
+  // looks like (quote <sexp>)
+  // so list == (<sexp>)
+
+  assert(ag_tail(list) == NULL);
+  return ag_head(list);
+}
+
+
+ag_val* ag_set(ag_val* list, env* e) {
+  // looks like (set <sym-sexp> <- <val-sexp>)
+  // so list == (<ssexp> <- <vsexp>)
+
+  ag_val* ssexp = ag_head(list);
+  ag_val* sym;
+  if (ssexp->type == AG_TYPE_SYMBOL) {
+    sym = ssexp;
+  } else {
+    sym = ag_eval(ssexp, e);
+  }
+  ag_val* vsexp = ag_head(ag_tail(ag_tail(list)));
+  ag_val* vsexp_val = ag_eval(vsexp, e);
+    
+  // FIXME: Learn how dynamic variables actually work.
+  bind* found = ag_lex_find(e, sym);
+  if (found) {
+    assert(!found);
+    return NULL;
+  } else {
+    ag_lex_add(e, mk_bind(vsexp_val, sym, true));
+    return vsexp_val;
+  }
+}
+
+ag_val* ag_setBang(ag_val* list, env* e) {
+  // looks like (set! <sym-sexp> <- <val-sexp>)
+  // so list == (<ssexp> <- <vsexp>)
+
+  ag_val* ssexp = ag_head(list);
+  ag_val* sym;
+  if (ssexp->type == AG_TYPE_SYMBOL) {
+    sym = ssexp;
+  } else {
+    sym = ag_eval(ssexp, e);
+  }
+  ag_val* vsexp = ag_head(ag_tail(ag_tail(list)));
+  ag_val* vsexp_val = ag_eval(vsexp, e);
+
+  bind* found = ag_lex_find(e, sym);
+  if (found) {
+    ag_lex_replace(e, mk_bind(vsexp_val, sym, false));
+  } else {
+    ag_set(list, e);
+  }
+  return vsexp_val;
 }
 
 ag_val* ag_builtin_op_assert_valid_list(val_symbol op_sym, ag_val* list) {

@@ -43,7 +43,6 @@ int main(int argc, char** argv) {
       //      mpc_ast_print(r.output);
       ag_val* read_result = ag_read(r.output);
       env* e = malloc(sizeof(env));
-      *e = NULL;
       ag_val* eval_result = ag_eval(read_result, e);
       ag_print(eval_result);
       mpc_ast_delete(r.output);

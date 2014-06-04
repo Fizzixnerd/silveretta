@@ -17,13 +17,22 @@ bind* mk_bind(ag_val* v, ag_val* sym, bool dyn) {
   b->sym = sym->val.Symbol;
   b->val = v;
   b->dyn = dyn;
-  b->next = NULL;
   return b;
 }
 
 env* mk_env() {
   env* e = malloc(sizeof(env));
-  *e = NULL;
+  e->bhash = malloc(sizeof(bind*));
+  *e->bhash = NULL;
+  e->global = false;
+  e->boundary = true;
+  e->next = NULL;
+  return e;
+}
+
+env* mk_global_env() {
+  env* e = mk_env();
+  e->global = true;
   return e;
 }
 
@@ -31,43 +40,56 @@ void del_bind(bind* b) {
   free(b);
 }
 
-void del_bind_chain(bind* b) {
-  free(b);
-  if (b->next) {
-    del_bind_chain(b->next);
-  }
-}
-
 void del_env(env* e) {
   bind* b;
   bind* tmp;
-  HASH_ITER(hh, *e, b, tmp) {
-    HASH_DEL(*e, b);
+  HASH_ITER(hh, *e->bhash, b, tmp) {
+    HASH_DEL(*e->bhash, b);
     del_bind(b);
   }
+  free(e->bhash);
   free(e);
 }
 
+void del_env_chain(env* e) {
+  env* it;
+  for (it = e; it; it=it->next) {
+    del_env(it);
+  }
+}
+
 void ag_lex_add(env* e, bind* b) {
-  HASH_ADD_KEYPTR(hh, *e, b->sym, strlen(b->sym), b);
+  HASH_ADD_KEYPTR(hh, *e->bhash, b->sym, strlen(b->sym), b);
 }
 
 bind* ag_lex_replace(env* e, bind* b) {
   bind* replaced;
-  HASH_REPLACE(hh, *e, sym, strlen(b->sym), b, replaced);
+  HASH_REPLACE(hh, *e->bhash, sym, strlen(b->sym), b, replaced);
   return replaced;
 }
 
 bind* ag_lex_rm(env* e, bind* b) {
-  HASH_DEL(*e, b);
+  HASH_DEL(*e->bhash, b);
   return b;
 }
 
+// FIXME: This might be bad if things get del'd, because e->bhash
+// could change... I think... Maybe...!  Might be okay if we always
+// return the new main env*...
+bind* ag_lex_find1(env* e, ag_val* sym) {
+  assert(sym->type == AG_TYPE_SYMBOL);
+  bind* it;
+  for (it = *e->bhash; it && strcmp(it->sym, sym->val.Symbol); it = it->hh.next)
+    { ; }
+  return it;
+}
+ 
 bind* ag_lex_find(env* e, ag_val* sym) {
   assert(sym->type == AG_TYPE_SYMBOL);
-
   bind* b;
-  for (b = *e; b && strcmp(b->sym, sym->val.Symbol); b=b->hh.next) { ; }
+  env* it;
+  for (it = e; it && !(b = ag_lex_find1(it, sym)) && it->next; it = it->next)
+    { ; }
   return b;
 }
 
@@ -81,61 +103,65 @@ bind* ag_lex_find_rm(env* e, ag_val* sym) {
   return b;
 }
 
-void ag_lex_push(env* e, bind* b) {
-  ag_val* s = mk_ag_val_symbol(strdup(b->sym));
-  bind* removed = ag_lex_find_rm(e, s);
-  b->next = removed;
-  ag_lex_add(e, b);
-  del_ag_val(s);
-}
-
-bind* ag_lex_pop(env* e, bind* b) {
-  bind* popped_bind = ag_lex_rm(e, b);
-  ag_lex_add(e, popped_bind->next);
-  popped_bind->next = NULL;
-  return popped_bind;
-}
-
-bind* ag_lex_find_pop(env* e, ag_val* sym) {
-  assert(sym->type == AG_TYPE_SYMBOL);
-  bind* b = ag_lex_find(e, sym);
-  return ag_lex_pop(e, b);
-}
-
-bind* ag_lex_cp(bind* b) {
+bind* ag_lex_cp_bind(bind* b) {
   if (!b) return NULL;
   bind* cpy = malloc(sizeof(bind));
   cpy->sym = b->sym;
   cpy->val = b->val;
-  cpy->dyn = false;
-  cpy->next = NULL;
+  cpy->dyn = cpy->dyn;
   return cpy;
 }
 
-env* ag_lex_push_env(env* main, env* other) {
-  // The other env should be only one variable deep;
-  bind* b;
-  if (!other) return main;
-  for (b=*other; b; b=b->hh.next) {
-    assert(!b->next);
-    ag_lex_push(main, b);
-  }
-  return main;
+// Returns the new main env.
+env* ag_lex_push(env* main, env* other) {
+  env* it;
+  for (it = other; it && it->next; it = it->next)
+    { assert(!it->global); }
+  it->next = main;
+  return other;
 }
 
-env* ag_lex_pop_env(env* main, env* other) {
-  bind* b;
-  for (b=*other; b; b=b->hh.next) {
-    ag_lex_pop(main, b);
-  }
-  return main;
+env* ag_lex_boundary(env* e) {
+  env* it;
+  for (it = other; it && !it->boundary; it = it->next)
+    { ; }
+  return it;
 }
 
-env* ag_lex_cp_env_top(env* main) {
+// Returns the new main env.
+env* ag_lex_pop(env* main) {
+  env* boundary = ag_lex_boundary(main);
+  if (!boundary || !boundary->next) {
+    return NULL;
+  } else {
+    env* result = boundary->next;
+    boundary->next = NULL;
+    return result;
+  }
+}
+
+env* ag_lex_cp(env* e) {
   env* result = mk_env();
-  bind* b;
-  for (b=*main; b; b=b->hh.next) {
-    ag_lex_add(result, ag_lex_cp(b));
+  env* rit = result;
+  env* it;
+  env* cpy;
+  for (it = e; it; it = it->next) {
+    cpy = ag_lex_cp_top(it);
+    rit->next = cpy;
+    rit = rit->next;
+  }
+  if (result->next) {
+    return result->next;
+  } else {
+    result;
+  }
+}
+
+env* ag_lex_cp_top(env* e) {
+  env* result = mk_env();
+  bind* it;
+  for (it = *e->bhash; it; it=it->hh.next) {
+    ag_lex_add(result, ag_lex_cp_bind(b));
   }
   return result;
 }

@@ -54,3 +54,13 @@ ag_val* ag_list_append(ag_val* v, ag_val* tail) {
 ag_val* val_list_pop(val_list* v) {
   return v ? v->head : NULL;
 }
+
+ag_val* ag_head(ag_val* list) {
+  assert(list->type == AG_TYPE_LIST);
+  return list->val.List->head;
+}
+
+ag_val* ag_tail(ag_val* list) {
+  assert(list->type == AG_TYPE_LIST);
+  return list->val.List->tail;
+}
