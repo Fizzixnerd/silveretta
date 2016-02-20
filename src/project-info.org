@@ -1,3 +1,0 @@
-* Reloading Projects
-Can reload when no targets.
-Can't reload with one target.
