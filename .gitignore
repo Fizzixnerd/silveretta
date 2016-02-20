@@ -1,4 +1,5 @@
 *~
-*.o
-silveretta
-test
+*.o *.so
+\#*\#
+cabal.sandbox.config
+.cabal-sandbox
