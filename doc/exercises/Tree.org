@@ -1,0 +1,119 @@
+* Trees
+  In this file we examine some fun things using trees.  This is used
+  in reference to Part d of [[file:E1.org][E1.org]] for the implementation of an
+  efficient symbol table.  These trees are self-balancing red-black
+  trees.  I didn't actually have to do all this work, apparently,
+  re-reading the question.  So that's fun.  I won't finish this now,
+  but it will be useful later.
+
+** Header
+   #+BEGIN_SRC haskell -r :tangle Tree.hs :comments both
+     module Tree where
+     import Prelude as P
+   #+END_SRC
+
+** Types
+   The Tree type is parameterized on the key and the value types.
+
+   #+BEGIN_SRC haskell -r :tangle Tree.hs :comments both
+     data Tree k v = Leaf
+                   | Tree { left  :: Tree
+                          , key   :: k
+                          , val   :: v
+                          , right :: Tree
+                          , color :: Color
+                          } deriving P.Eq
+
+     data Color = Red | Black deriving P.Eq
+   #+END_SRC
+
+** Functions
+   Note that [[(rbInsert)][rbInsert]] is adapted from page 554 of Sedgewick's
+   Algorithms in C Parts 1 - 4.
+   #+BEGIN_SRC haskell -r :tangle Tree.hs :comments both
+     empty :: Tree k v
+     empty = Leaf
+
+     singleton :: k -> v -> Tree k v
+     singleton k v = Tree { left  = Leaf
+                          , key   = k
+                          , val   = v
+                          , right = Leaf
+                          , color = Black
+                          }
+
+     redSingleton :: k -> v -> Tree k v
+     redSingleton k v = (singleton k v) { color = Red }
+
+     isSingleton :: Tree k v -> Bool
+     isSingleton (Tree { left  = Leaf
+                       , right = Leaf
+                       }) = True
+     isSingleton _ = False
+
+     isRed :: Tree k v -> Bool
+     isRed (Tree { color = Red }) = True
+     isRed _ = False
+
+     isBlack :: Tree k v -> Bool
+     isBlack (Tree { color = Black }) = True
+     isBlack _ = False
+
+     flipColor :: Tree k v -> Tree k v
+     flipColor t 
+       | isLeaf t         = Leaf
+       | color t == Black = t { color = Red }
+       | otherwise        = t { color = Black }
+
+     isLeaf :: Tree k v -> Bool
+     isLeaf Leaf = True
+     isLeaf _    = False
+
+     rbInsert :: (P.Ord k, P.Eq k) => Tree k v -> k -> v -> Tree k v
+     rbInsert t k v = rbInsert' t k v False
+
+     rbInsert' :: (P.Ord k, P.Eq k) => Tree k v -> k -> v -> Bool -> Tree k v (ref:rbInsert)
+     rbInsert' t k v sw
+       | isLeaf t = singleton k v
+       |
+
+     insert :: (P.Ord k, P.Eq k) => Tree k v -> k -> v -> Tree k v
+     insert t k v 
+       | isLeaf t     = singleton k v
+       | k <  (key t) = t { left  = insert (left  t) k v }
+       | k >  (key t) = t { right = insert (right t) k v }
+       | k == (key t) = t { val   = v }
+
+     lookup :: (P.Ord k, P.Eq k) => Tree k v -> k -> Maybe v
+     lookup t k
+       | isLeaf t     = None
+       | k <  (key t) = lookup (left t) k
+       | k >  (key t) = lookup (right t) k
+       | k == (key t) = Some $ val t
+
+     member :: (P.Ord k, P.Eq k) => Tree k v -> k -> Bool
+     member t k = (lookup t k) /= None
+
+     rotR :: Tree k v -> Tree k v
+     rotR Leaf = Leaf
+     rotR t@(Tree { left = Leaf }) = t
+     rotR t = l { right = t { left = lr } }
+       where
+         l  = left t
+         lr = right l
+
+     rotL :: Tree k v -> Tree k v
+     rotL Leaf = Leaf
+     rotL t@(Tree { right = Leaf }) = t
+     rotL t = r { left = t { right = rl } }
+       where
+         r  = right t
+         rl = left r
+
+     rootInsert :: (P.Ord k, P.Eq k) => Tree k v -> k -> v -> Tree k v
+     rootInsert t k v
+       | isLeaf t    = singleton k v
+       | k < (key t) = rotR $ t { left = rootInsert (left t) k v }
+       | otherwise   = rotL $ t { right = rootInsert (right t) k v }
+   #+END_SRC
+

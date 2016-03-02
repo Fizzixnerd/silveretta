@@ -1,0 +1,78 @@
+We implement simple persistent functional binary search trees.  This
+is really easy in Haskell.  Page 12.
+
+* Starting Code
+  This is the code the book gives you.
+** Header
+   #+BEGIN_SRC haskell -r :tangle E1.hs :comments both
+     module E1 where
+   #+END_SRC
+
+** Types
+   We defined the types for the Tree.
+   
+   #+BEGIN_SRC haskell -r :tangle E1.hs :comments both
+     newtype Key = Key String deriving Eq, Ord
+     data Tree = Leaf 
+               | Tree Tree Key Tree
+   #+END_SRC
+
+** Defintions
+   #+BEGIN_SRC haskell -r :tangle E1.hs :comments both
+     emptyT :: Tree
+     emptyT = Leaf
+
+     insertT :: Key -> Tree -> Tree
+     insertT k Leaf = Tree Leaf k Leaf
+     insertT k (Tree l v r) = 
+       if k < v then
+         Tree (insertT k l) v r
+       else if k > v then
+         Tree l v (insertT k r)
+       else
+         Tree l k r
+   #+END_SRC
+
+* Part a
+  #+BEGIN_SRC haskell -r :tangle E1.hs :comments both 
+    memberT :: Key -> Tree -> Bool
+    memberT _ Leaf = False
+    memberT k (Tree l v r)
+      | k == v = True
+      | k <  v = memberT k l
+      | k >  v = memberT k r
+  #+END_SRC
+
+* Part b
+** Header
+   #+BEGIN_SRC haskell -r :tangle E1v2.hs :comments both
+     module E1v2 where
+   #+END_SRC
+
+** Types
+   This time the type of Tree is parametric, and nodes contain (Key,
+   Value) pairs.
+
+   #+BEGIN_SRC haskell -r :tangle E1v2.hs :comments both
+     newtype Key = String deriving Eq, Ord
+
+     data Tree a = Leaf
+                 | Tree Tree (Key, a) Tree
+   #+END_SRC
+
+** Functions
+   #+BEGIN_SRC haskell -r :tangle E1v2.hs :comments both
+     insertT :: Tree a -> Key -> a -> Tree a
+     insertT k v Leaf = Tree Leaf (k, v) Leaf
+     insertT k v (Tree l (key, val) r) =
+       | k <  key = Tree (insert k v l) (key, val) r
+       | k >  key = Tree l (key, val) (insert k v r)
+       | k == key = Tree l (k, v) r
+
+     lookupT :: Tree a -> Key -> a
+     lookupT Leaf _ = error "Could not find key in tree."
+     lookupT (Tree l (key, val) r) k
+       | k <  key = lookupT l k
+       | k >  key = lookupT r k
+       | k == key = val
+   #+END_SRC

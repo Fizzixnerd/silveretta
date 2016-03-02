@@ -1,0 +1,83 @@
+
+./src/Main.hs,0
+
+./src/SLPI.hs,22
+module SLPI SLPI2,3
+
+./doc/slpi.hs,1278
+module SLPI SLPI0,1
+newtype Id Id2,3
+newtype Id = Id Id2,3
+newtype Numb Numb3,4
+newtype Numb = Numb Numb3,4
+data Binop Binop5,6
+data Binop = Add Add5,6
+data Binop = Add | Sub Sub5,6
+data Binop = Add | Sub | Mul Mul5,6
+data Binop = Add | Sub | Mul | DivDiv5,6
+data Stm Stm7,8
+data Stm = CompoundStm CompoundStm7,8
+         | AssignmentStm AssignmentStm8,9
+         | PrintStm PrintStm9,10
+data Exp Exp11,12
+data Exp = IdExp IdExp11,12
+         | NumExp NumExp12,13
+         | BinopExp BinopExp13,14
+         | EseqExp EseqExp14,15
+data ExpList ExpList16,17
+data ExpList = PairExpList PairExpList16,17
+             | LastExpList LastExpList17,18
+newtype Table Table19,20
+newtype Table = Table Table19,20
+lenExpList lenExpList21,22
+lenExpList lenExpList22,23
+maxArgsExp maxArgsExp25,26
+maxArgsExp maxArgsExp26,27
+maxArgs maxArgs31,32
+maxArgs maxArgs32,33
+emptyT emptyT36,37
+emptyT emptyT37,38
+updateT updateT39,40
+updateT updateT40,41
+lookupT lookupT42,43
+lookupT lookupT43,44
+interpStm interpStm48,49
+interpStm interpStm49,50
+interpExp interpExp55,56
+interpExp interpExp56,57
+interpExpList interpExpList66,67
+interpExpList interpExpList67,68
+evalBinop evalBinop72,73
+evalBinop evalBinop73,74
+
+./Setup.hs,15
+main main1,2
+
+./dist/build/autogen/Paths_silveretta.hs,970
+module Paths_silveretta Paths_silveretta0,1
+catchIO catchIO11,12
+catchIO catchIO12,13
+version version14,15
+version version15,16
+bindir, libdir, datadir, libexecdir, sysconfdir sysconfdir16,17
+bindir, libdir, datadir, libexecdir,libexecdir16,17
+bindir, libdir, datadir,datadir16,17
+bindir, libdir,libdir16,17
+bindir,bindir16,17
+bindir bindir18,19
+libdir libdir19,20
+datadir datadir20,21
+libexecdir libexecdir21,22
+sysconfdir sysconfdir22,23
+getBinDir, getLibDir, getDataDir, getLibexecDir, getSysconfDir getSysconfDir24,25
+getBinDir, getLibDir, getDataDir, getLibexecDir,getLibexecDir24,25
+getBinDir, getLibDir, getDataDir,getDataDir24,25
+getBinDir, getLibDir,getLibDir24,25
+getBinDir,getBinDir24,25
+getBinDir getBinDir25,26
+getLibDir getLibDir26,27
+getDataDir getDataDir27,28
+getLibexecDir getLibexecDir28,29
+getSysconfDir getSysconfDir29,30
+getDataFileName getDataFileName31,32
+getDataFileName getDataFileName32,33

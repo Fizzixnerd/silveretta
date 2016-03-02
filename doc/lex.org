@@ -1,0 +1,100 @@
+* Lexical Analysis
+  This is the .org file for Chapter 2 of A. Appel's Modern Compiler
+  Implementation in ML.  It focuses on Lexical Analysis.
+
+** Regular Expressions and Finite Automata
+*** Regular Expressions
+    Basic regexes are constructed from only a few primitives.
+
+**** Primitives
+***** Atoms
+      \epsilon is the empty regex.
+
+      Single characters, such as `a' and `!'.
+
+***** Combinators
+      Alternation
+      (<+>) :: Regex a -> Regex a -> Regex a
+      Given regexes x and y, x <|> y matches x or y.
+
+      Concatenation
+      (<*>) :: Regex a -> Regex a -> Regex a
+      Given regexes x and y, x <+> y matches when an x is followed
+      immediately by y.
+
+      Repetition
+      many :: Regex a -> Regex a
+      Given regex x, many x matches zero or more consecutive xs.
+
+***** Laws
+      So, the combinators actually obey a couple of laws.  The first
+      are the fact that Epsilon is a unit for each of the ops.
+
+      Epsilon <*> x = x
+      x <*> Epsilon = x
+
+      Epsilon <+> x = x
+      x <+> Epsilon = x
+
+      many Epsilon = Epsilon
+
+      The second is the distributive property for <*> and <+> (which
+      is why I chose those particular names, in addition to their
+      similarity to "sum and product types").
+
+      x <*> (y <+> z) = (x <*> y) <+> (x <*> z)
+
+      `many' is sort of weird.  I don't really see any distributive
+      properties with it.
+      
+
+**** Code
+     We can define a regex as follows:
+     #+BEGIN_SRC haskell -r :tangle Regex.hs :comments both
+       module Regex where
+
+       data Regex a = Epsilon
+                    | Single a
+                    | Alt (Regex a) (Regex a)
+                    | Cat (Regex a) (Regex a)
+                    | Many (Regex a)
+
+       isEmpty :: Regex a -> Bool
+       isEmpty Epsilon = True
+       isEmpty _ = False
+
+       isEpsilon :: Regex a -> Bool
+       isEpsilon = isEmpty
+
+       isSingle :: Regex a -> Bool
+       isSingle (Single _) = True
+       isSingle _ = False
+
+       isAlt :: Regex a -> Bool
+       isAlt (Alt _ _) = True
+       isAlt _ = False
+
+       isCat :: Regex a -> Bool
+       isCat (Cat _ _) = True
+       isCat _ = False
+
+       isMany :: Regex a -> Bool
+       isMany (Many _) = True
+       isMany _ = False
+
+       (<+>) :: Regex a -> Regex a -> Regex a
+       Epsilon <+> y = y
+       x <+> Epsilon = x
+       x <+> y = Alt x y
+
+       (<*>) :: Regex a -> Regex a -> Regex a
+       Epsilon <*> y = y
+       x <*> Epsilon = x
+       x <*> y = Cat x y
+
+       many :: Regex a -> Regex a
+       many Epsilon = Epsilon
+       many x = Many x
+     #+END_SRC
+
+*** Finite Automata
