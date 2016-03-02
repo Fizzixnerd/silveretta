@@ -6,9 +6,18 @@
 *** Regular Expressions
     Basic regexes are constructed from only a few primitives.
 
+    I'm going to model regexes as functions [a] -> Bool instead of the
+    usual [a] -> ([a], [a]).  This is so that they become
+    algebraically simpler.  Specifically, this makes the alternation
+    operation commute.
+
+    This might not be necessary, actually, because of the /longest
+    match rule/.  I'll have to see.  For now, I'll consider them [a]
+    -> Bool, however.
+
 **** Primitives
 ***** Atoms
-      \epsilon is the empty regex.
+      Epsilon is the empty regex.
 
       Single characters, such as `a' and `!'.
 
@@ -28,25 +37,87 @@
 
 ***** Laws
       So, the combinators actually obey a couple of laws.  The first
-      are the fact that Epsilon is a unit for each of the ops.
+      are the fact that Epsilon is a unit for <*> and many.
 
-      Epsilon <*> x = x
-      x <*> Epsilon = x
+      #+BEGIN_SRC haskell
+        Epsilon <*> x = x
+        x <*> Epsilon = x
 
-      Epsilon <+> x = x
-      x <+> Epsilon = x
+        many Epsilon = Epsilon
+      #+END_SRC
 
-      many Epsilon = Epsilon
+      Secondly, <+> is commutative.
 
-      The second is the distributive property for <*> and <+> (which
+      #+BEGIN_SRC haskell
+        x <+> y = y <+> x
+      #+END_SRC
+      
+      The third is that Epsilon annihilates with <+>
+
+      #+BEGIN_SRC haskell
+        Epsilon <+> x = Epsilon
+      #+END_SRC
+
+      Fourthly, <+> is also idempotent.
+
+      #+BEGIN_SRC haskell
+        x <+> x = x
+      #+END_SRC
+
+      The fifth is the distributive property for <*> and <+> (which
       is why I chose those particular names, in addition to their
       similarity to "sum and product types").
 
-      x <*> (y <+> z) = (x <*> y) <+> (x <*> z)
+      #+BEGIN_SRC haskell
+        x <*> (y <+> z) = (x <*> y) <+> (x <*> z)
+        (y <+> z) <*> x = (y <*> x) <+> (z <*> x)
+      #+END_SRC
 
       `many' is sort of weird.  I don't really see any distributive
-      properties with it.
-      
+      properties with it.  The only thing that I can see is the
+      following.
+
+      #+BEGIN_SRC haskell
+        many . many = many
+      #+END_SRC
+
+      Thinking more, I can also invent an element which is dual to
+      Epsilon.  We will call this Omega.  Omega is an element which
+      matches no string.
+
+      We then obtain the following laws.
+
+      #+BEGIN_SRC haskell
+        -- Omega is a unit for <+>
+        Omega <+> x = x
+
+        -- Omega annihilates for <*>
+        Omega <*> x = Omega
+        x <*> Omega = Omega
+
+        many Omega = Epsilon
+      #+END_SRC
+
+      This last law actually makes a lot of sense if you notice that
+      `many' is the exponential function, and Omega = 0, Epsilon = 1.
+
+      #+BEGIN_SRC haskell
+        many 0 = 1
+        many 1 = 1
+        many x = 1 <+> x <+> x <*> x <+> ...
+            -- = 1  +  x  + x^2       +  ...
+      #+END_SRC
+
+      However, since multiplication does not commute, we do not have
+      the useful property that the regular exponential has, namely:
+
+      #+BEGIN_SRC haskell
+        many (x <+> y) /= (many x) <*> (many y)
+      #+END_SRC
+
+      since `xyx' matches the first but not the second.
+
+      In the end, we have an Idempotent Semiring.  Nice.
 
 **** Code
      We can define a regex as follows:
